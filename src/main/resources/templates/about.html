@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="fragments :: head (titulo='Acerca de')"></head>
+
+<body>
+
+    <div th:if="${isAuthenticated}">
+        <div th:replace="navBar :: navbar-authenticated"></div>
+    </div>
+
+    <div th:unless="${isAuthenticated}">
+        <div th:replace="navBar :: navbar-guest"></div>
+    </div>
+
+    <main class="container my-5">
+
+        <section class="text-center mb-5">
+            <h1 class="display-4 fw-bold">ToDoList EPN - GRUPO 4</h1>
+        </section>
+
+        <section class="card shadow-sm mx-auto" style="max-width: 600px;">
+            <div class="card-body">
+                <h2 class="card-title mb-4 text-primary">Información del Proyecto</h2>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Desarrollado por:</strong> Grupo 4</li>
+                    <li class="list-group-item"><strong>Versión:</strong> 1.0.1</li>
+                    <li class="list-group-item"><strong>Fecha de release:</strong> 10 de Junio, 2025</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <div th:replace="fragments :: javascript"></div>
+
+</body>
+
+</html>

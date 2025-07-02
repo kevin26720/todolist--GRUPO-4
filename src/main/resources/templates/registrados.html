@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuarios Registrados</title>
+</head>
+<body>
+<h1>Usuarios Registrados</h1>
+<ul>
+  <li th:each="usuario : ${usuarios}">
+    ID: <span th:text="${usuario.id}"></span> -
+    Email: <span th:text="${usuario.email}"></span>
+  </li>
+</ul>
+</body>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuarios Registrados</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+<h1>Usuarios Registrados</h1>
+<table>
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Email</th>
+    <th>Nombre</th>
+    <th>Fecha de Nacimiento</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="usuario : ${usuarios}">
+    <td th:text="${usuario.id}"></td>
+    <td th:text="${usuario.email}"></td>
+    <td th:text="${usuario.nombre} ?: 'No especificado'"></td>
+    <td th:text="${usuario.fechaNacimiento} ?: 'No especificada'"></td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

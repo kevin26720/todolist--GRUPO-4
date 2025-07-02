@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head (titulo)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}"></title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+
+<div th:fragment="javascript">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/popper.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('.dropdown-toggle').dropdown();
+
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('Bootstrap loaded:', typeof $.fn.dropdown !== 'undefined');
+        });
+    </script>
+</div>
+
+</body>
+</html>

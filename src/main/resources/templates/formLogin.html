@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="fragments :: head (titulo='Login')"></head>
+
+<body>
+
+    <main class="container my-5">
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-auto">
+                <h2 class="fw-bold">Login</h2>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <form method="post" th:action="@{/login}" th:object="${loginData}" novalidate>
+
+                    <div class="mb-3">
+                        <label for="eMail" class="form-label">Usuario</label>
+                        <input id="eMail" type="email" class="form-control" name="eMail"
+                            placeholder="Correo electrónico" th:field="*{eMail}" required autofocus>
+                    </div>
+
+                    <div class="mb-4">
+                        <labe l for="password" class="form-label">Contraseña</label>
+                        <input id="password" type="password" class="form-control" name="password"
+                            placeholder="Contraseña" th:field="*{password}" required>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <button type="submit" class="btn btn-primary">Ingresar</button>
+                        <div>
+                            <a class="btn btn-link p-0 me-3" href="/registro">Registrarse</a>
+                            <a class="btn btn-link p-0" href="/about">Acerca de</a>
+                        </div>
+                    </div>
+
+                    <div th:if="${error != null}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <div th:replace="fragments :: javascript"></div>
+
+</body>
+
+</html>
