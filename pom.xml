@@ -8,7 +8,7 @@
 
     <groupId>es.ua.mads</groupId>
     <artifactId>epn-todolist-GRUP0-4</artifactId>
-    <version>1.0.1</version>
+    <version>1.3.0</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
