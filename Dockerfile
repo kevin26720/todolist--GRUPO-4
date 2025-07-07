@@ -8,4 +8,7 @@ COPY target/*.jar app.jar
 # https://programmer.help/blogs/page-opening-stuck-when-using-httpsession-in-springboot-under-openjdk.html
 # Más información:
 # https://www.digitalocean.com/community/tutorials/how-to-setup-additional-entropy-for-cloud-servers-using-haveged
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/urandom","-jar","/app.jar"]
+# 
+# ENTRYPOINT modificado para permitir pasar parámetros de configuración al comando java
+# Esto permite usar parámetros como --spring.profiles.active=postgres --POSTGRES_HOST=host-prueba
+ENTRYPOINT ["sh","-c","java -Djava.security.egd=file:/dev/urandom -jar /app.jar ${0} ${@}"]
