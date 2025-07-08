@@ -44,19 +44,17 @@ public class TareaService {
 
     @Transactional(readOnly = true)
     public List<TareaData> allTareasUsuario(Long idUsuario) {
-        logger.debug("Devolviendo todas las tareas del usuario " + idUsuario);
-        Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
-        if (usuario == null) {
-            throw new TareaServiceException("Usuario " + idUsuario + " no existe al listar tareas ");
-        }
-        // Hacemos uso de Java Stream API para mapear la lista de entidades a DTOs.
-        List<TareaData> tareas = usuario.getTareas().stream()
-                .map(tarea -> modelMapper.map(tarea, TareaData.class))
-                .collect(Collectors.toList());
-        // Ordenamos la lista por id de tarea
-        Collections.sort(tareas, (a, b) -> a.getId() < b.getId() ? -1 : a.getId() == b.getId() ? 0 : 1);
-        return tareas;
+    logger.debug("Devolviendo todas las tareas del usuario " + idUsuario);
+    Usuario usuario = usuarioRepository.findByIdWithTareas(idUsuario);
+    if (usuario == null) {
+        throw new TareaServiceException("Usuario " + idUsuario + " no existe al listar tareas ");
     }
+    List<TareaData> tareas = usuario.getTareas().stream()
+            .map(tarea -> modelMapper.map(tarea, TareaData.class))
+            .collect(Collectors.toList());
+    Collections.sort(tareas, (a, b) -> a.getId() < b.getId() ? -1 : a.getId() == b.getId() ? 0 : 1);
+    return tareas;
+}
 
     @Transactional(readOnly = true)
     public TareaData findById(Long tareaId) {
