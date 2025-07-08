@@ -21,9 +21,13 @@ public class Usuario implements Serializable {
     private String email;
     private String nombre;
     private String password;
+    @Column
+    private String direccion;
+
     @Column(name = "fecha_nacimiento")
     @Temporal(TemporalType.DATE)
     private Date fechaNacimiento;
+
 
     // La relación es lazy por defecto,
     // es necesario acceder a la lista de tareas para que se carguen
@@ -85,6 +89,14 @@ public class Usuario implements Serializable {
 
     public Set<Tarea> getTareas() {
         return tareas;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 
     // Método helper para añadir una tarea a la lista y establecer la relación inversa
