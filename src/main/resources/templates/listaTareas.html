@@ -1,76 +1,398 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (titulo='Login')"></head>
+<head th:replace="fragments :: head (titulo='Mis Tareas')">
+    <style>
+        /* Estilos para tareas completadas */
+        .tarea-completada {
+            background-color: #d5f4e6 !important;
+            opacity: 0.8;
+        }
+        
+        .tarea-completada .titulo-tarea {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        
+        .tarea-pendiente {
+            background-color: #f8f9fa;
+        }
+        
+        .checkbox-tarea {
+            transform: scale(1.2);
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .estadisticas-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-custom {
+            height: 8px;
+            border-radius: 10px;
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        .progress-bar-custom {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+        
+        .filtros-tareas {
+            margin-bottom: 20px;
+        }
+        
+        .btn-filtro {
+            margin-right: 10px;
+            border-radius: 20px;
+        }
+        
+        .btn-filtro.active {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        
+        .tarea-row {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
+        }
+        
+        .tarea-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tarea-completada {
+            border-left-color: #28a745;
+        }
+        
+        .tarea-pendiente {
+            border-left-color: #ffc107;
+        }
+        
+        .acciones-masivas {
+            margin-bottom: 15px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        }
+    </style>
+</head>
 
 <body>
 
     <div th:if="${usuario != null}" th:replace="navBar :: navbar-authenticated"></div>
 
-
-
     <div class="container-fluid">
 
-
+        <!-- Estadísticas -->
         <div class="row mt-3">
             <div class="col">
-                <h2 th:text="'Listado de tareas de ' + ${usuario.nombre}"></h2>
+                <div class="estadisticas-container fade-in">
+                    <h2 class="mb-3" th:text="'📝 Tareas de ' + ${usuario.nombre}"></h2>
+                    
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h4 class="mb-1" th:text="${totalTareas ?: 0}">0</h4>
+                            <small>Total de tareas</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="mb-1 text-success" th:text="${tareasCompletadas ?: 0}">0</h4>
+                            <small>Completadas ✅</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="mb-1 text-warning" th:text="${tareasPendientes ?: 0}">0</h4>
+                            <small>Pendientes ⏳</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="mb-1" th:text="${porcentajeCompletado ?: 0} + '%'">0%</h4>
+                            <small>Progreso</small>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-custom mt-3">
+                        <div class="progress-bar-custom" th:style="'width: ' + ${porcentajeCompletado ?: 0} + '%'"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Filtros -->
+        <div class="row">
+            <div class="col">
+                <div class="filtros-tareas">
+                    <button class="btn btn-outline-primary btn-filtro active" onclick="filtrarTareas('todas')" id="filtro-todas">
+                        Todas (<span th:text="${totalTareas ?: 0}">0</span>)
+                    </button>
+                    <button class="btn btn-outline-success btn-filtro" onclick="filtrarTareas('completadas')" id="filtro-completadas">
+                        Completadas (<span th:text="${tareasCompletadas ?: 0}">0</span>)
+                    </button>
+                    <button class="btn btn-outline-warning btn-filtro" onclick="filtrarTareas('pendientes')" id="filtro-pendientes">
+                        Pendientes (<span th:text="${tareasPendientes ?: 0}">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de tareas -->
         <div class="row mt-3">
             <div class="col">
-                <table class="table table-striped">
-                    <thead>
+                <div th:if="${totalTareas == null or totalTareas == 0}" class="text-center p-5">
+                    <h4 class="text-muted">📝 No tienes tareas aún</h4>
+                    <p class="text-muted">¡Crea tu primera tarea para empezar!</p>
+                    <a class="btn btn-primary" th:href="@{/usuarios/{id}/tareas/nueva(id=${usuario.id})}">
+                        ➕ Nueva tarea
+                    </a>
+                </div>
+
+                <table class="table table-hover" th:if="${totalTareas != null and totalTareas > 0}">
+                    <thead class="table-dark">
                         <tr>
-                            <th>Id</th>
+                            <th width="50">Estado</th>
+                            <th width="80">Id</th>
                             <th>Tarea</th>
-                            <th>Acción</th>
+                            <th width="200">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="tarea: ${tareas}">
-                            <td th:text="${tarea.id}"></td>
-                            <td th:text="${tarea.titulo}"></td>
-                            <td><a class="btn btn-primary btn-xs"
-                                    th:href="@{/tareas/{id}/editar(id=${tarea.id})}" />editar</a>
-                                <button class="btn btn-danger btn-xs" onmouseover="" style="cursor: pointer;"
-                                    th:onclick="'del(\'/tareas/' + ${tarea.id} + '\')'">borrar</button>
+                    <tbody id="tabla-tareas">
+                        <tr th:each="tarea: ${tareas}" 
+                            th:class="'tarea-row fade-in ' + ${tarea.completada != null and tarea.completada ? 'tarea-completada' : 'tarea-pendiente'}"
+                            th:data-estado="${tarea.completada != null and tarea.completada ? 'completada' : 'pendiente'}">
+                            
+                            <td class="align-middle">
+                                <input type="checkbox" 
+                                       class="checkbox-tarea form-check-input" 
+                                       th:checked="${tarea.completada != null and tarea.completada}"
+                                       th:data-id="${tarea.id}"
+                                       onchange="toggleTarea(this)"
+                                       title="Marcar como completada/pendiente">
+                            </td>
+                            
+                            <td class="align-middle" th:text="${tarea.id}"></td>
+                            
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <span class="titulo-tarea me-2" th:text="${tarea.titulo}"></span>
+                                    <span class="badge bg-success ms-auto" 
+                                          th:if="${tarea.completada != null and tarea.completada}"
+                                          title="Tarea completada">✅</span>
+                                    <span class="badge bg-warning ms-auto" 
+                                          th:if="${tarea.completada == null or !tarea.completada}"
+                                          title="Tarea pendiente">⏳</span>
+                                </div>
+                            </td>
+                            
+                            <td class="align-middle">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a class="btn btn-outline-primary" 
+                                       th:href="@{/tareas/{id}/editar(id=${tarea.id})}"
+                                       title="Editar tarea">
+                                        ✏️ Editar
+                                    </a>
+                                    <button class="btn btn-outline-danger" 
+                                            th:onclick="'eliminarTarea(\'/tareas/' + ${tarea.id} + '\')'"
+                                            title="Eliminar tarea">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <p><a class="btn btn-primary" th:href="@{/usuarios/{id}/tareas/nueva(id=${usuario.id})}"> Nueva
-                        tarea</a>
-                    <a class="btn btn-link" href="/logout">Salir</a>
-                </p>
+
+                <div class="mt-3" th:if="${totalTareas != null and totalTareas > 0}">
+                    <a class="btn btn-primary me-2" th:href="@{/usuarios/{id}/tareas/nueva(id=${usuario.id})}">
+                        ➕ Nueva tarea
+                    </a>
+                    <a class="btn btn-outline-secondary" href="/logout">
+                        🚪 Salir
+                    </a>
+                </div>
             </div>
         </div>
+
+        <!-- Mensajes -->
         <div class="row mt-2">
             <div class="col">
                 <div class="alert alert-success alert-dismissible fade show" role="alert"
-                    th:if="${!#strings.isEmpty(mensaje)}">
+                     th:if="${!#strings.isEmpty(mensaje)}">
                     <span th:text="${mensaje}"></span>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             </div>
         </div>
     </div>
 
-
-    </div>
+    <!-- Container para notificaciones -->
+    <div id="notificaciones-container"></div>
 
     <div th:replace="fragments::javascript" />
 
-    <script type="text/javascript">
-        function del(urlBorrar) {
+    <script>
+        // Función para alternar estado de tarea
+        function toggleTarea(checkbox) {
+            const tareaId = checkbox.dataset.id;
+            const isChecked = checkbox.checked;
+            
+            // Mostrar confirmación solo al marcar como completada
+            if (isChecked) {
+                if (!confirm('¿Marcar esta tarea como completada?')) {
+                    checkbox.checked = false;
+                    return;
+                }
+            }
+            
+            fetch('/tareas/' + tareaId + '/toggle', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion(data.message, 'success');
+                    actualizarFilaTarea(tareaId, data.completed);
+                    // Recargar página después de 1.5 segundos para actualizar contadores
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    mostrarNotificacion(data.error || 'Error al actualizar tarea', 'error');
+                    checkbox.checked = !isChecked; // Revertir checkbox
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error de conexión al actualizar tarea', 'error');
+                checkbox.checked = !isChecked; // Revertir checkbox
+            });
+        }
+
+        // Función para eliminar tarea
+        function eliminarTarea(urlBorrar) {
             if (confirm('¿Estás seguro/a de que quieres borrar la tarea?')) {
                 fetch(urlBorrar, {
                     method: 'DELETE'
-                }).then((res) => location.reload());
+                })
+                .then(response => {
+                    if (response.ok) {
+                        mostrarNotificacion('Tarea eliminada correctamente', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        mostrarNotificacion('Error al eliminar la tarea', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarNotificacion('Error de conexión al eliminar tarea', 'error');
+                });
             }
+        }
+
+        // Función para filtrar tareas
+        function filtrarTareas(filtro) {
+            const filas = document.querySelectorAll('#tabla-tareas tr');
+            const botones = document.querySelectorAll('.btn-filtro');
+            
+            // Actualizar botones activos
+            botones.forEach(btn => btn.classList.remove('active'));
+            document.getElementById('filtro-' + filtro).classList.add('active');
+            
+            // Filtrar filas
+            filas.forEach(fila => {
+                const estado = fila.dataset.estado;
+                let mostrar = false;
+                
+                switch(filtro) {
+                    case 'todas':
+                        mostrar = true;
+                        break;
+                    case 'completadas':
+                        mostrar = estado === 'completada';
+                        break;
+                    case 'pendientes':
+                        mostrar = estado === 'pendiente';
+                        break;
+                }
+                
+                fila.style.display = mostrar ? '' : 'none';
+            });
+        }
+
+        // Función para actualizar fila de tarea
+        function actualizarFilaTarea(tareaId, completada) {
+            const fila = document.querySelector('input[data-id="' + tareaId + '"]').closest('tr');
+            const titulo = fila.querySelector('.titulo-tarea');
+            const badge = fila.querySelector('.badge');
+            
+            if (completada) {
+                fila.className = 'tarea-row fade-in tarea-completada';
+                fila.dataset.estado = 'completada';
+                titulo.style.textDecoration = 'line-through';
+                titulo.style.color = '#6c757d';
+                badge.className = 'badge bg-success ms-auto';
+                badge.textContent = '✅';
+                badge.title = 'Tarea completada';
+            } else {
+                fila.className = 'tarea-row fade-in tarea-pendiente';
+                fila.dataset.estado = 'pendiente';
+                titulo.style.textDecoration = 'none';
+                titulo.style.color = '';
+                badge.className = 'badge bg-warning ms-auto';
+                badge.textContent = '⏳';
+                badge.title = 'Tarea pendiente';
+            }
+        }
+
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo) {
+            const container = document.getElementById('notificaciones-container');
+            const id = 'notif-' + Date.now();
+            
+            const alertClass = tipo === 'success' ? 'alert-success' : 
+                              tipo === 'error' ? 'alert-danger' : 'alert-info';
+            
+            const iconos = {
+                'success': '✅',
+                'error': '❌',
+                'info': 'ℹ️'
+            };
+            
+            const notif = document.createElement('div');
+            notif.id = id;
+            notif.className = 'alert ' + alertClass + ' alert-dismissible fade show notification';
+            notif.innerHTML = iconos[tipo] + ' ' + mensaje + 
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            
+            container.appendChild(notif);
+            
+            // Auto-remover después de 4 segundos
+            setTimeout(() => {
+                const elemento = document.getElementById(id);
+                if (elemento) {
+                    elemento.remove();
+                }
+            }, 4000);
         }
     </script>
 
